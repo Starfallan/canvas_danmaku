@@ -43,7 +43,6 @@ abstract final class DmUtils {
     builder
       ..pushStyle(ui.TextStyle(color: content.color, fontSize: effectiveFontSize))
       ..addText(content.text);
-      ..addText(content.text);
 
     return builder.build()
       ..layout(const ui.ParagraphConstraints(width: double.infinity));
