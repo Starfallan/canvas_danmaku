@@ -20,6 +20,9 @@ abstract final class DmUtils {
     required double fontSize,
     required int fontWeight,
   }) {
+    // Use content.fontSize if available, otherwise use global fontSize
+    final effectiveFontSize = content.fontSize ?? fontSize;
+    
     final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
       textAlign: TextAlign.left,
       fontWeight: FontWeight.values[fontWeight],
@@ -31,14 +34,15 @@ abstract final class DmUtils {
       builder
         ..pushStyle(ui.TextStyle(
           color: content.color,
-          fontSize: fontSize * 0.6,
+          fontSize: effectiveFontSize * 0.6,
         ))
         ..addText('($count)')
         ..pop();
     }
 
     builder
-      ..pushStyle(ui.TextStyle(color: content.color, fontSize: fontSize))
+      ..pushStyle(ui.TextStyle(color: content.color, fontSize: effectiveFontSize))
+      ..addText(content.text);
       ..addText(content.text);
 
     return builder.build()
@@ -53,6 +57,8 @@ abstract final class DmUtils {
     required double strokeWidth,
     required double devicePixelRatio,
   }) {
+    // Use content.fontSize if available, otherwise use global fontSize
+    final effectiveFontSize = content.fontSize ?? fontSize;
     double w = contentParagraph.maxIntrinsicWidth + strokeWidth;
     double h = contentParagraph.height + strokeWidth;
 
@@ -87,7 +93,7 @@ abstract final class DmUtils {
       if (content.count case final count?) {
         builder
           ..pushStyle(ui.TextStyle(
-            fontSize: fontSize * 0.6,
+            fontSize: effectiveFontSize * 0.6,
             foreground: strokePaint,
           ))
           ..addText('($count)')
@@ -95,7 +101,7 @@ abstract final class DmUtils {
       }
 
       builder
-        ..pushStyle(ui.TextStyle(fontSize: fontSize, foreground: strokePaint))
+        ..pushStyle(ui.TextStyle(fontSize: effectiveFontSize, foreground: strokePaint))
         ..addText(content.text);
 
       final strokeParagraph = builder.build()

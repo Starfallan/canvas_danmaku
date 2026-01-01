@@ -24,6 +24,9 @@ class DanmakuContentItem<T> {
   /// 弹幕数量
   final int? count;
 
+  /// 字体大小
+  final double? fontSize;
+
   final T? extra;
 
   DanmakuContentItem(
@@ -33,12 +36,13 @@ class DanmakuContentItem<T> {
     this.selfSend = false,
     this.isColorful = false,
     this.count,
+    this.fontSize,
     this.extra,
   });
 
   @override
   String toString() {
-    return '${objectRuntimeType(this, "DanmakuContentItem<?>")}(text="$text", color=0x${color.toARGB32().toRadixString(16)}, type=${type.name}${count != null ? ", count=$count" : ""}${selfSend ? ", selfSend" : ""}${isColorful ? ", colorful" : ""}${extra != null ? ". extra=$extra" : ""})';
+    return '${objectRuntimeType(this, "DanmakuContentItem<?>")}(text="$text", color=0x${color.toARGB32().toRadixString(16)}, type=${type.name}${count != null ? ", count=$count" : ""}${fontSize != null ? ", fontSize=$fontSize" : ""}${selfSend ? ", selfSend" : ""}${isColorful ? ", colorful" : ""}${extra != null ? ". extra=$extra" : ""})';
   }
 }
 
