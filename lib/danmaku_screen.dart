@@ -15,11 +15,13 @@ class DanmakuScreen<T> extends StatefulWidget {
   // 创建Screen后返回控制器
   final ValueChanged<DanmakuController<T>> createdController;
   final DanmakuOption option;
+  final Size size;
 
   const DanmakuScreen({
+    super.key,
     required this.createdController,
     required this.option,
-    super.key,
+    required this.size,
   });
 
   @override
@@ -50,9 +52,6 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
 
   /// 弹幕轨道数
   int _trackCount = 0;
-
-  /// 弹幕实际高度
-  double _trackHeight = 0;
 
   /// 滚动弹幕速度或时间，负号表示速度
   double _scrollVelocityOrDuration = 0;
@@ -90,13 +89,13 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
       isRunning: () => _running,
       findDanmaku: findDanmaku,
       findSingleDanmaku: findSingleDanmaku,
-      getViewWidth: () => _viewWidth,
-      getViewHeight: () => _viewHeight,
       getTrackCount: () => _trackCount,
       scrollDanmaku: _scrollDanmakuItems,
       staticDanmaku: _staticDanmakuItems.value,
       specialDanmaku: _specialDanmakuItems,
     ));
+
+    _init(widget.size);
   }
 
   @override
@@ -464,8 +463,6 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
     final area = _viewHeight * _option.area;
     int newTrackCount = area ~/ _danmakuHeight;
 
-    _trackHeight = area / newTrackCount;
-
     /// 为字幕留出余量
     if (_option.safeArea && _option.area == 1.0) {
       newTrackCount--;
@@ -479,121 +476,117 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        /// 计算视图宽度
-        final viewWidth = constraints.maxWidth;
-        final viewHeight = constraints.maxHeight;
-        if (_viewWidth != viewWidth) {
-          _viewWidth = viewWidth;
-          if (_option.scrollFixedVelocity) {
-            _scrollVelocityOrDuration =
-                -_viewWidth / _option.durationInMilliseconds;
-          }
-        }
-        if (_viewHeight != viewHeight) {
-          _viewHeight = viewHeight;
-          _calcTracks();
-        }
+  void didUpdateWidget(DanmakuScreen<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.size != widget.size) {
+      _init(widget.size);
+    }
+  }
 
-        return ClipRect(
-          child: IgnorePointer(
-            child: Stack(
-              children: [
-                RepaintBoundary.wrap(
-                  ValueListenableBuilder(
-                    valueListenable: _notifier,
-                    builder: (context, value, child) {
-                      return CustomPaint(
-                        willChange: _running,
-                        painter: ScrollDanmakuPainter(
-                          length: _scrollDanmakuItems.fold<int>(
-                              0, (p, n) => p + n.length),
-                          trackHeight: _trackHeight,
-                          danmakuItems: _scrollDanmakuItems,
-                          durationInMilliseconds: _scrollVelocityOrDuration,
-                          fontSize: _option.fontSize,
-                          fontWeight: _option.fontWeight,
-                          strokeWidth: _option.strokeWidth,
-                          devicePixelRatio: devicePixelRatio,
-                          running: _running,
-                          tick: value,
-                        ),
-                        size: Size.infinite,
-                      );
-                    },
+  void _init(Size size) {
+    final viewWidth = size.width;
+    final viewHeight = size.height;
+    if (_viewWidth != viewWidth) {
+      _viewWidth = viewWidth;
+      if (_option.scrollFixedVelocity) {
+        _scrollVelocityOrDuration =
+            -_viewWidth / _option.durationInMilliseconds;
+      }
+    }
+    if (_viewHeight != viewHeight) {
+      _viewHeight = viewHeight;
+      _calcTracks();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          RepaintBoundary.wrap(
+            ValueListenableBuilder(
+              valueListenable: _notifier,
+              builder: (context, value, child) {
+                return CustomPaint(
+                  willChange: _running,
+                  painter: ScrollDanmakuPainter(
+                    length: _scrollDanmakuItems.fold<int>(
+                        0, (p, n) => p + n.length),
+                    trackHeight: _danmakuHeight,
+                    danmakuItems: _scrollDanmakuItems,
+                    durationInMilliseconds: _scrollVelocityOrDuration,
+                    fontSize: _option.fontSize,
+                    fontWeight: _option.fontWeight,
+                    strokeWidth: _option.strokeWidth,
+                    devicePixelRatio: devicePixelRatio,
+                    running: _running,
+                    tick: value,
                   ),
-                  0,
-                ),
-                RepaintBoundary.wrap(
-                  ValueListenableBuilder(
-                    valueListenable: _staticDanmakuItems,
-                    builder: (context, value, child) {
-                      return CustomPaint(
-                        painter: StaticDanmakuPainter(
-                          count: value.nonNulls.length,
-                          trackHeight: _trackHeight,
-                          danmakuItems: value,
-                          staticDurationInMilliseconds:
-                              _option.staticDurationInMilliseconds,
-                          fontSize: _option.fontSize,
-                          fontWeight: _option.fontWeight,
-                          strokeWidth: _option.strokeWidth,
-                          devicePixelRatio: devicePixelRatio,
-                          tick: _notifier.value,
-                        ),
-                        size: Size.infinite,
-                      );
-                    },
-                  ),
-                  1,
-                ),
-                RepaintBoundary.wrap(
-                  ValueListenableBuilder(
-                    valueListenable: _notifier, // 与滚动弹幕共用控制器
-                    builder: (context, value, child) {
-                      return CustomPaint(
-                        willChange: _running,
-                        painter: SpecialDanmakuPainter(
-                          length: _specialDanmakuItems.length,
-                          danmakuItems: _specialDanmakuItems,
-                          fontSize: _option.fontSize,
-                          fontWeight: _option.fontWeight,
-                          strokeWidth: _option.strokeWidth,
-                          devicePixelRatio: devicePixelRatio,
-                          running: _running,
-                          tick: value,
-                        ),
-                        size: Size.infinite,
-                      );
-                    },
-                  ),
-                  2,
-                ),
-              ],
+                  size: widget.size,
+                );
+              },
             ),
+            0,
           ),
-        );
-      },
+          RepaintBoundary.wrap(
+            ValueListenableBuilder(
+              valueListenable: _staticDanmakuItems,
+              builder: (context, value, child) {
+                return CustomPaint(
+                  painter: StaticDanmakuPainter(
+                    count: value.nonNulls.length,
+                    trackHeight: _danmakuHeight,
+                    danmakuItems: value,
+                    staticDurationInMilliseconds:
+                        _option.staticDurationInMilliseconds,
+                    fontSize: _option.fontSize,
+                    fontWeight: _option.fontWeight,
+                    strokeWidth: _option.strokeWidth,
+                    devicePixelRatio: devicePixelRatio,
+                    tick: _notifier.value,
+                  ),
+                  size: widget.size,
+                );
+              },
+            ),
+            1,
+          ),
+          RepaintBoundary.wrap(
+            ValueListenableBuilder(
+              valueListenable: _notifier, // 与滚动弹幕共用控制器
+              builder: (context, value, child) {
+                return CustomPaint(
+                  willChange: _running,
+                  painter: SpecialDanmakuPainter(
+                    length: _specialDanmakuItems.length,
+                    danmakuItems: _specialDanmakuItems,
+                    fontSize: _option.fontSize,
+                    fontWeight: _option.fontWeight,
+                    strokeWidth: _option.strokeWidth,
+                    devicePixelRatio: devicePixelRatio,
+                    running: _running,
+                    tick: value,
+                  ),
+                  size: widget.size,
+                );
+              },
+            ),
+            2,
+          ),
+        ],
+      ),
     );
   }
 
   Iterable<(double, DanmakuItem<T>)> findDanmaku(Offset position) sync* {
-    final index = position.dy *
-        (_trackCount + (_option.safeArea && _option.area == 1.0 ? 1 : 0)) ~/
-        (_viewHeight * _option.area);
+    final index = position.dy ~/ _danmakuHeight;
 
     if (index >= _trackCount) {
-      // assert((() => throw RangeError.range(
-      //       position.dy,
-      //       0,
-      //       (_trackCount * _trackHeight).toInt(),
-      //     ))());
       return;
     }
 
-    final trackHeight = index * _trackHeight;
+    late final trackHeight = index * _danmakuHeight;
 
     final dx = position.dx;
     final item = _staticDanmakuItems[index];
@@ -611,20 +604,13 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
   }
 
   (double, DanmakuItem<T>)? findSingleDanmaku(Offset position) {
-    final index = position.dy *
-        (_trackCount + (_option.safeArea && _option.area == 1.0 ? 1 : 0)) ~/
-        (_viewHeight * _option.area);
+    final index = position.dy ~/ _danmakuHeight;
 
     if (index >= _trackCount) {
-      // assert((() => throw RangeError.range(
-      //       position.dy,
-      //       0,
-      //       (_trackCount * _trackHeight).toInt(),
-      //     ))());
       return null;
     }
 
-    final trackHeight = index * _trackHeight;
+    late final trackHeight = index * _danmakuHeight;
 
     final dx = position.dx;
     final item = _staticDanmakuItems[index];
