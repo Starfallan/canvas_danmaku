@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 abstract final class DmUtils {
   static const maxRasterizeSize = 8192.0;
 
+  static double devicePixelRatio = 1;
   static final Paint _selfSendPaint = Paint()
     ..style = PaintingStyle.stroke
     ..color = Colors.green;
@@ -54,7 +55,6 @@ abstract final class DmUtils {
     required double fontSize,
     required int fontWeight,
     required double strokeWidth,
-    required double devicePixelRatio,
   }) {
     // Use content.fontSize if available, otherwise use global fontSize
     final effectiveFontSize = content.fontSize ?? fontSize;
@@ -67,7 +67,10 @@ abstract final class DmUtils {
     );
 
     final rec = ui.PictureRecorder();
-    final canvas = ui.Canvas(rec)..scale(devicePixelRatio);
+    final canvas = ui.Canvas(rec);
+    if (devicePixelRatio != 1) {
+      canvas.scale(devicePixelRatio);
+    }
 
     if (strokeWidth != 0) {
       final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
@@ -130,7 +133,6 @@ abstract final class DmUtils {
     required SpecialDanmakuContentItem content,
     required int fontWeight,
     required double strokeWidth,
-    required double devicePixelRatio,
   }) {
     final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
       textAlign: TextAlign.left,
@@ -157,8 +159,7 @@ abstract final class DmUtils {
     final rec = ui.PictureRecorder();
     final canvas = ui.Canvas(rec);
 
-    final Rect rect;
-    double adjustDevicePixelRatio = devicePixelRatio;
+    Rect rect;
 
     if (content.rotateZ != 0 || content.matrix != null) {
       rect = _calculateRotatedBounds(
@@ -168,14 +169,10 @@ abstract final class DmUtils {
         content.matrix,
       );
 
-      final imgLongestSide = rect.size.longestSide * devicePixelRatio;
-      if (imgLongestSide > maxRasterizeSize) {
-        // force resize
-        adjustDevicePixelRatio = maxRasterizeSize / imgLongestSide;
+      if (devicePixelRatio != 1) {
+        canvas.scale(devicePixelRatio);
       }
-      canvas
-        ..scale(adjustDevicePixelRatio)
-        ..translate(strokeOffset - rect.left, strokeOffset - rect.top);
+      canvas.translate(strokeOffset - rect.left, strokeOffset - rect.top);
 
       if (content.matrix case final matrix?) {
         canvas.transform(matrix.storage);
@@ -186,23 +183,40 @@ abstract final class DmUtils {
     } else {
       rect = Rect.fromLTRB(0, 0, totalWidth, totalHeight);
 
-      final imgLongestSide = max(totalWidth, totalHeight) * devicePixelRatio;
-      if (imgLongestSide > maxRasterizeSize) {
-        final scale = maxRasterizeSize / imgLongestSide;
-        adjustDevicePixelRatio = scale;
+      if (devicePixelRatio != 1) {
+        canvas.scale(devicePixelRatio);
       }
-      canvas
-        ..scale(adjustDevicePixelRatio)
-        ..drawParagraph(paragraph, Offset(strokeOffset, strokeOffset));
+      canvas.drawParagraph(paragraph, Offset(strokeOffset, strokeOffset));
+    }
+    paragraph.dispose();
+
+    double width = rect.width * devicePixelRatio;
+    double height = rect.height * devicePixelRatio;
+    if (width > maxRasterizeSize || height > maxRasterizeSize) {
+      final scaledMaxSize = maxRasterizeSize / devicePixelRatio;
+      final left = rect.left;
+      final top = rect.top;
+      double right = rect.right;
+      double bottom = rect.bottom;
+
+      if (width > maxRasterizeSize) {
+        right = left + scaledMaxSize;
+        width = maxRasterizeSize;
+      }
+
+      if (height > maxRasterizeSize) {
+        bottom = top + scaledMaxSize;
+        height = maxRasterizeSize;
+      }
+
+      rect = Rect.fromLTRB(left, top, right, bottom);
     }
 
     content.rect = rect;
 
-    final imgSize = rect.size * adjustDevicePixelRatio;
     final pic = rec.endRecording();
-    final img = pic.toImageSync(imgSize.width.ceil(), imgSize.height.ceil());
+    final img = pic.toImageSync(width.ceil(), height.ceil());
     pic.dispose();
-    paragraph.dispose();
 
     return img;
   }
