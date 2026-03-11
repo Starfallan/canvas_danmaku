@@ -23,27 +23,28 @@ abstract final class DmUtils {
   }) {
     // Use content.fontSize if available, otherwise use global fontSize
     final effectiveFontSize = content.fontSize ?? fontSize;
-    
-    final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-      textAlign: TextAlign.left,
-      fontWeight: FontWeight.values[fontWeight],
-      textDirection: TextDirection.ltr,
-      maxLines: 1,
-    ));
 
-    if (content.count case final count?) {
-      builder
-        ..pushStyle(ui.TextStyle(
-          color: content.color,
-          fontSize: effectiveFontSize * 0.6,
-        ))
-        ..addText('($count)')
-        ..pop();
-    }
+    final builder = ui.ParagraphBuilder(
+      ui.ParagraphStyle(
+        textAlign: TextAlign.left,
+        fontWeight: FontWeight.values[fontWeight],
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      ),
+    );
 
-    builder
-      ..pushStyle(ui.TextStyle(color: content.color, fontSize: effectiveFontSize))
-      ..addText(content.text);
+    _appendNormalDanmakuText(
+      builder: builder,
+      content: content,
+      textStyle: ui.TextStyle(
+        color: content.color,
+        fontSize: effectiveFontSize,
+      ),
+      countTextStyle: ui.TextStyle(
+        color: content.color,
+        fontSize: effectiveFontSize * 0.6,
+      ),
+    );
 
     return builder.build()
       ..layout(const ui.ParagraphConstraints(width: double.infinity));
@@ -73,17 +74,19 @@ abstract final class DmUtils {
     }
 
     if (strokeWidth != 0) {
-      final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-        textAlign: TextAlign.left,
-        fontWeight: FontWeight.values[fontWeight],
-        textDirection: TextDirection.ltr,
-        maxLines: 1,
-      ));
+      final builder = ui.ParagraphBuilder(
+        ui.ParagraphStyle(
+          textAlign: TextAlign.left,
+          fontWeight: FontWeight.values[fontWeight],
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        ),
+      );
       final Paint strokePaint = Paint()
         ..shader = content.isColorful
             ? const LinearGradient(
-                    colors: [Color(0xFFF2509E), Color(0xFF308BCD)])
-                .createShader(Rect.fromLTWH(0, 0, w, h))
+                colors: [Color(0xFFF2509E), Color(0xFF308BCD)],
+              ).createShader(Rect.fromLTWH(0, 0, w, h))
             : null
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth;
@@ -92,19 +95,18 @@ abstract final class DmUtils {
         strokePaint.color = Colors.black;
       }
 
-      if (content.count case final count?) {
-        builder
-          ..pushStyle(ui.TextStyle(
-            fontSize: effectiveFontSize * 0.6,
-            foreground: strokePaint,
-          ))
-          ..addText('($count)')
-          ..pop();
-      }
-
-      builder
-        ..pushStyle(ui.TextStyle(fontSize: effectiveFontSize, foreground: strokePaint))
-        ..addText(content.text);
+      _appendNormalDanmakuText(
+        builder: builder,
+        content: content,
+        textStyle: ui.TextStyle(
+          fontSize: effectiveFontSize,
+          foreground: strokePaint,
+        ),
+        countTextStyle: ui.TextStyle(
+          fontSize: effectiveFontSize * 0.6,
+          foreground: strokePaint,
+        ),
+      );
 
       final strokeParagraph = builder.build()
         ..layout(const ui.ParagraphConstraints(width: double.infinity));
@@ -134,20 +136,25 @@ abstract final class DmUtils {
     required int fontWeight,
     required double strokeWidth,
   }) {
-    final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-      textAlign: TextAlign.left,
-      fontWeight: FontWeight.values[fontWeight],
-      textDirection: TextDirection.ltr,
-      fontSize: content.fontSize,
-    ))
-      ..pushStyle(ui.TextStyle(
-        color: content.color,
-        fontSize: content.fontSize,
-        shadows: content.hasStroke
-            ? [Shadow(color: Colors.black, blurRadius: strokeWidth)]
-            : null,
-      ))
-      ..addText(content.text);
+    final builder =
+        ui.ParagraphBuilder(
+            ui.ParagraphStyle(
+              textAlign: TextAlign.left,
+              fontWeight: FontWeight.values[fontWeight],
+              textDirection: TextDirection.ltr,
+              fontSize: content.fontSize,
+            ),
+          )
+          ..pushStyle(
+            ui.TextStyle(
+              color: content.color,
+              fontSize: content.fontSize,
+              shadows: content.hasStroke
+                  ? [Shadow(color: Colors.black, blurRadius: strokeWidth)]
+                  : null,
+            ),
+          )
+          ..addText(content.text);
 
     final paragraph = builder.build()
       ..layout(const ui.ParagraphConstraints(width: double.infinity));
@@ -265,5 +272,42 @@ abstract final class DmUtils {
     final ab = a > b ? a : b;
     final cd = c > d ? c : d;
     return ab > cd ? ab : cd;
+  }
+
+  static void _appendNormalDanmakuText({
+    required ui.ParagraphBuilder builder,
+    required DanmakuContentItem content,
+    required ui.TextStyle textStyle,
+    required ui.TextStyle countTextStyle,
+  }) {
+    void appendCount(int count) {
+      builder
+        ..pushStyle(countTextStyle)
+        ..addText('($count)')
+        ..pop();
+    }
+
+    void appendText() {
+      builder
+        ..pushStyle(textStyle)
+        ..addText(content.text)
+        ..pop();
+    }
+
+    if (content.count case final count?) {
+      switch (content.countPosition) {
+        case DanmakuCountPosition.hidden:
+          appendText();
+        case DanmakuCountPosition.head:
+          appendCount(count);
+          appendText();
+        case DanmakuCountPosition.tail:
+          appendText();
+          appendCount(count);
+      }
+      return;
+    }
+
+    appendText();
   }
 }

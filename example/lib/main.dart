@@ -19,10 +19,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'CanvasDanmaku Demo',
-      home: HomePage(),
-    );
+    return const MaterialApp(title: 'CanvasDanmaku Demo', home: HomePage());
   }
 }
 
@@ -115,9 +112,7 @@ class _HomePageState extends State<HomePage> {
       child: SizedBox(
         height: overlayHeight,
         width: overlayWidth / 3,
-        child: Center(
-          child: child,
-        ),
+        child: Center(child: child),
       ),
     );
   }
@@ -125,9 +120,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('CanvasDanmaku Demo'),
-      ),
+      appBar: AppBar(title: const Text('CanvasDanmaku Demo')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -160,6 +153,7 @@ class _HomePageState extends State<HomePage> {
                         // color: Colors.white,
                         type: DanmakuItemType.top,
                         count: [1, 10, 100, 1000, 10000][_random.nextInt(5)],
+                        countPosition: DanmakuCountPosition.tail,
                         extra: _random.nextInt(2147483647),
                       ),
                     );
@@ -176,6 +170,7 @@ class _HomePageState extends State<HomePage> {
                         // color: Colors.white,
                         type: DanmakuItemType.bottom,
                         count: [1, 10, 100, 1000, 10000][_random.nextInt(5)],
+                        countPosition: DanmakuCountPosition.hidden,
                         extra: _random.nextInt(2147483647),
                       ),
                     );
@@ -217,27 +212,22 @@ class _HomePageState extends State<HomePage> {
                   child: const Text('Star'),
                   onPressed: () {
                     _controller?.addDanmaku(
-                      SpecialDanmakuContentItem.fromList(
-                        getRandomColor(),
-                        44,
-                        [
-                          "0.939",
-                          "0.083",
-                          "1-1",
-                          "6",
-                          "☆——————\n" * 14,
-                          "342",
-                          "0",
-                          "0.002",
-                          "0.271",
-                          500,
-                          0,
-                          1,
-                          "SimHei",
-                          1,
-                        ],
-                        extra: _random.nextInt(2147483647),
-                      ),
+                      SpecialDanmakuContentItem.fromList(getRandomColor(), 44, [
+                        "0.939",
+                        "0.083",
+                        "1-1",
+                        "6",
+                        "☆——————\n" * 14,
+                        "342",
+                        "0",
+                        "0.002",
+                        "0.271",
+                        500,
+                        0,
+                        1,
+                        "SimHei",
+                        1,
+                      ], extra: _random.nextInt(2147483647)),
                     );
                   },
                 ),
@@ -965,11 +955,7 @@ class _HomePageState extends State<HomePage> {
           } catch (_) {}
         } else {
           _controller?.addDanmaku(
-            DanmakuContentItem(
-              content,
-              type: type,
-              color: color,
-            ),
+            DanmakuContentItem(content, type: type, color: color),
           );
         }
       }

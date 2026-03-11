@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 enum DanmakuItemType { scroll, top, bottom, special }
 
+enum DanmakuCountPosition { hidden, head, tail }
+
 class DanmakuContentItem<T> {
   /// 弹幕文本
   final String text;
@@ -24,6 +26,9 @@ class DanmakuContentItem<T> {
   /// 弹幕数量
   final int? count;
 
+  /// 数量标记显示位置
+  final DanmakuCountPosition countPosition;
+
   /// 字体大小
   final double? fontSize;
 
@@ -36,13 +41,14 @@ class DanmakuContentItem<T> {
     this.selfSend = false,
     this.isColorful = false,
     this.count,
+    this.countPosition = DanmakuCountPosition.head,
     this.fontSize,
     this.extra,
   });
 
   @override
   String toString() {
-    return '${objectRuntimeType(this, "DanmakuContentItem<?>")}(text="$text", color=0x${color.toARGB32().toRadixString(16)}, type=${type.name}${count != null ? ", count=$count" : ""}${fontSize != null ? ", fontSize=$fontSize" : ""}${selfSend ? ", selfSend" : ""}${isColorful ? ", colorful" : ""}${extra != null ? ". extra=$extra" : ""})';
+    return '${objectRuntimeType(this, "DanmakuContentItem<?>")}(text="$text", color=0x${color.toARGB32().toRadixString(16)}, type=${type.name}${count != null ? ", count=$count" : ""}, countPosition=${countPosition.name}${fontSize != null ? ", fontSize=$fontSize" : ""}${selfSend ? ", selfSend" : ""}${isColorful ? ", colorful" : ""}${extra != null ? ". extra=$extra" : ""})';
   }
 }
 
@@ -165,15 +171,15 @@ class SpecialDanmakuContentItem<T> extends DanmakuContentItem<T> {
   ) {
     double toRadix(double? value, dynamic rawValue) =>
         (value! > 1 || (rawValue is String && !rawValue.contains('.')))
-            ? value /= videoSize
-            : value;
+        ? value /= videoSize
+        : value;
 
     double? convert(dynamic digit) => switch (digit) {
-          int() => digit.toDouble(),
-          double() => digit.isFinite ? digit : null,
-          String() => double.tryParse(digit),
-          _ => null
-        };
+      int() => digit.toDouble(),
+      double() => digit.isFinite ? digit : null,
+      String() => double.tryParse(digit),
+      _ => null,
+    };
 
     double? start = convert(rawStart);
     double? end = convert(rawEnd);
@@ -186,18 +192,18 @@ class SpecialDanmakuContentItem<T> extends DanmakuContentItem<T> {
   }
 
   static int _parseInt(dynamic digit) => switch (digit) {
-        int() => digit,
-        double() => digit.toInt(),
-        String() => int.tryParse(digit) ?? 0,
-        _ => 0
-      };
+    int() => digit,
+    double() => digit.toInt(),
+    String() => int.tryParse(digit) ?? 0,
+    _ => 0,
+  };
 
   static double _parseDouble(dynamic digit) => switch (digit) {
-        int() => digit.toDouble(),
-        double() => digit,
-        String() => double.tryParse(digit) ?? 0,
-        _ => 0
-      };
+    int() => digit.toDouble(),
+    double() => digit,
+    String() => double.tryParse(digit) ?? 0,
+    _ => 0,
+  };
 
   static Tween<T> _makeTween<T>(T start, T end) {
     return start == end
