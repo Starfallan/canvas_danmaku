@@ -133,6 +133,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
           text: '弹幕',
           style: TextStyle(
             fontSize: _option.fontSize,
+            fontFamily: _option.fontFamily,
             height: _option.lineHeight,
           ),
         ),
@@ -159,6 +160,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
       content: content,
       fontSize: _option.fontSize,
       fontWeight: _option.fontWeight,
+      fontFamily: _option.fontFamily,
     );
 
     final danmakuWidth = (content.selfSend
@@ -323,7 +325,8 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
 
     final clearParagraph = fontSizeChanged ||
         option.fontWeight != _option.fontWeight ||
-        option.strokeWidth != _option.strokeWidth;
+        option.strokeWidth != _option.strokeWidth ||
+        option.fontFamily != _option.fontFamily;
 
     final needRestart = _ticker.isActive && clearScroll && clearParagraph;
     if (needRestart) {

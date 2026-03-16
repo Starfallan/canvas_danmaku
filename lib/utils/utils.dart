@@ -20,6 +20,7 @@ abstract final class DmUtils {
     required DanmakuContentItem content,
     required double fontSize,
     required int fontWeight,
+    String? fontFamily,
   }) {
     // Use content.fontSize if available, otherwise use global fontSize
     final effectiveFontSize = content.fontSize ?? fontSize;
@@ -28,6 +29,7 @@ abstract final class DmUtils {
       ui.ParagraphStyle(
         textAlign: TextAlign.left,
         fontWeight: FontWeight.values[fontWeight],
+        fontFamily: fontFamily,
         textDirection: TextDirection.ltr,
         maxLines: 1,
       ),
@@ -39,10 +41,12 @@ abstract final class DmUtils {
       textStyle: ui.TextStyle(
         color: content.color,
         fontSize: effectiveFontSize,
+        fontFamily: fontFamily,
       ),
       countTextStyle: ui.TextStyle(
         color: content.color,
         fontSize: effectiveFontSize * 0.6,
+        fontFamily: fontFamily,
       ),
     );
 
@@ -55,6 +59,7 @@ abstract final class DmUtils {
     required DanmakuContentItem content,
     required double fontSize,
     required int fontWeight,
+    String? fontFamily,
     required double strokeWidth,
   }) {
     // Use content.fontSize if available, otherwise use global fontSize
@@ -78,6 +83,7 @@ abstract final class DmUtils {
         ui.ParagraphStyle(
           textAlign: TextAlign.left,
           fontWeight: FontWeight.values[fontWeight],
+          fontFamily: fontFamily,
           textDirection: TextDirection.ltr,
           maxLines: 1,
         ),
@@ -101,10 +107,12 @@ abstract final class DmUtils {
         textStyle: ui.TextStyle(
           fontSize: effectiveFontSize,
           foreground: strokePaint,
+          fontFamily: fontFamily,
         ),
         countTextStyle: ui.TextStyle(
           fontSize: effectiveFontSize * 0.6,
           foreground: strokePaint,
+          fontFamily: fontFamily,
         ),
       );
 
@@ -134,6 +142,7 @@ abstract final class DmUtils {
   static ui.Image recordSpecialDanmakuImg({
     required SpecialDanmakuContentItem content,
     required int fontWeight,
+    String? fontFamily,
     required double strokeWidth,
   }) {
     final builder =
@@ -141,6 +150,7 @@ abstract final class DmUtils {
             ui.ParagraphStyle(
               textAlign: TextAlign.left,
               fontWeight: FontWeight.values[fontWeight],
+              fontFamily: fontFamily,
               textDirection: TextDirection.ltr,
               fontSize: content.fontSize,
             ),
@@ -149,6 +159,7 @@ abstract final class DmUtils {
             ui.TextStyle(
               color: content.color,
               fontSize: content.fontSize,
+              fontFamily: fontFamily,
               shadows: content.hasStroke
                   ? [Shadow(color: Colors.black, blurRadius: strokeWidth)]
                   : null,
