@@ -138,6 +138,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
           text: '弹幕',
           style: TextStyle(
             fontSize: _option.fontSize,
+            fontFamily: _option.fontFamily,
             height: _option.lineHeight,
           ),
         ),
@@ -164,6 +165,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
       content: content,
       fontSize: _option.fontSize,
       fontWeight: _option.fontWeight,
+      fontFamily: _option.fontFamily,
     );
 
     final danmakuWidth = (content.selfSend
@@ -190,6 +192,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
           fontSize: _option.fontSize,
           fontWeight: _option.fontWeight,
           strokeWidth: _option.strokeWidth,
+          fontFamily: _option.fontFamily,
         ));
 
     for (var i = 0; i < _trackCount; i++) {
@@ -262,6 +265,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
                 content: content as SpecialDanmakuContentItem,
                 fontWeight: _option.fontWeight,
                 strokeWidth: _option.strokeWidth,
+                fontFamily: _option.fontFamily,
               )),
         );
         if (_running && !_ticker.isActive) {
@@ -328,7 +332,8 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
 
     final clearParagraph = fontSizeChanged ||
         option.fontWeight != _option.fontWeight ||
-        option.strokeWidth != _option.strokeWidth;
+        option.strokeWidth != _option.strokeWidth ||
+        option.fontFamily != _option.fontFamily;
 
     final needRestart = _ticker.isActive && clearScroll && clearParagraph;
     if (needRestart) {
@@ -528,6 +533,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
                     fontSize: _option.fontSize,
                     fontWeight: _option.fontWeight,
                     strokeWidth: _option.strokeWidth,
+                    fontFamily: _option.fontFamily,
                     running: _running,
                     tick: value,
                   ),
@@ -551,6 +557,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
                     fontSize: _option.fontSize,
                     fontWeight: _option.fontWeight,
                     strokeWidth: _option.strokeWidth,
+                    fontFamily: _option.fontFamily,
                     tick: _notifier.value,
                   ),
                   size: widget.size,
@@ -571,6 +578,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
                     fontSize: _option.fontSize,
                     fontWeight: _option.fontWeight,
                     strokeWidth: _option.strokeWidth,
+                    fontFamily: _option.fontFamily,
                     running: _running,
                     tick: value,
                   ),

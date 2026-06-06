@@ -35,6 +35,9 @@ class DanmakuOption {
   /// 弹幕描边
   final double strokeWidth;
 
+  /// 自定义字体
+  final String? fontFamily;
+
   /// 滚动弹幕速度不随内容长度变化
   final bool scrollFixedVelocity;
 
@@ -68,6 +71,7 @@ class DanmakuOption {
     this.hideTop = false,
     this.hideSpecial = false,
     this.strokeWidth = 1.5,
+    this.fontFamily,
     this.scrollFixedVelocity = false,
     this.massiveMode = false,
     this.static2Scroll = false,
@@ -87,6 +91,7 @@ class DanmakuOption {
     bool? hideScroll,
     bool? hideSpecial,
     double? strokeWidth,
+    String? fontFamily,
     bool? scrollFixedVelocity,
     bool? massiveMode,
     bool? static2Scroll,
@@ -104,6 +109,7 @@ class DanmakuOption {
       hideScroll: hideScroll ?? this.hideScroll,
       hideSpecial: hideSpecial ?? this.hideSpecial,
       strokeWidth: strokeWidth ?? this.strokeWidth,
+      fontFamily: fontFamily ?? this.fontFamily,
       scrollFixedVelocity: scrollFixedVelocity ?? this.scrollFixedVelocity,
       massiveMode: massiveMode ?? this.massiveMode,
       static2Scroll: static2Scroll ?? this.static2Scroll,
