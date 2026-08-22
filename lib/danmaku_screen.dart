@@ -149,6 +149,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
     _running = false;
     _ticker.dispose();
     _clearDanmakus();
+    _notifier.dispose();
     _staticDanmakuItems.dispose();
     super.dispose();
   }
