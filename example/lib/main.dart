@@ -5,17 +5,12 @@ import 'dart:math';
 
 import 'package:canvas_danmaku/canvas_danmaku.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
 
 void main() async {
-  runApp(
-    const MaterialApp(
-      title: 'CanvasDanmaku Demo',
-      home: HomePage(),
-    ),
-  );
+  runApp(const MaterialApp(title: 'CanvasDanmaku Demo', home: HomePage()));
 }
 
 class HomePage extends StatefulWidget {

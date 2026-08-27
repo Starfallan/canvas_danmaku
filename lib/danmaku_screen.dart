@@ -8,8 +8,8 @@ import 'package:canvas_danmaku/scroll_danmaku_painter.dart';
 import 'package:canvas_danmaku/special_danmaku_painter.dart';
 import 'package:canvas_danmaku/static_danmaku_painter.dart';
 import 'package:canvas_danmaku/utils/utils.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:material_ui/material_ui.dart';
 
 class DanmakuScreen<T> extends StatefulWidget {
   // 创建Screen后返回控制器
@@ -106,6 +106,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     DmUtils.devicePixelRatio = devicePixelRatio;
     if (devicePixelRatio > this.devicePixelRatio) {
@@ -150,6 +151,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
     _running = false;
     _ticker.dispose();
     _clearDanmakus();
+    _notifier.dispose();
     _staticDanmakuItems.dispose();
     super.dispose();
   }
