@@ -8,8 +8,8 @@ import 'package:canvas_danmaku/scroll_danmaku_painter.dart';
 import 'package:canvas_danmaku/special_danmaku_painter.dart';
 import 'package:canvas_danmaku/static_danmaku_painter.dart';
 import 'package:canvas_danmaku/utils/utils.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:material_ui/material_ui.dart';
 
 class DanmakuScreen<T> extends StatefulWidget {
   // 创建Screen后返回控制器
@@ -106,6 +106,8 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    DmUtils.fontFamily = DefaultTextStyle.of(context).style.fontFamily;
+
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     DmUtils.devicePixelRatio = devicePixelRatio;
     if (devicePixelRatio > this.devicePixelRatio) {
