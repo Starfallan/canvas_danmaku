@@ -5,6 +5,10 @@ import 'package:material_ui/material_ui.dart';
 
 class DanmakuController<T> {
   final bool Function(DanmakuContentItem<T>) addDanmaku;
+
+  /// 遮挡区（画布坐标系）：区内不绘制弹幕，也不参与 [findDanmaku] / [findSingleDanmaku] 命中。
+  /// null 表示不遮挡。每次传入新的 Path 对象都会触发重裁剪，调用方负责去重与坐标换算。
+  final ValueChanged<Path?> setMask;
   final ValueChanged<DanmakuOption> updateOption;
   final VoidCallback pause;
   final VoidCallback resume;
@@ -27,6 +31,7 @@ class DanmakuController<T> {
 
   DanmakuController({
     required this.addDanmaku,
+    required this.setMask,
     required this.updateOption,
     required this.pause,
     required this.resume,

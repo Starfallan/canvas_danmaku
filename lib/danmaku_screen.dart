@@ -47,6 +47,14 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
   /// 高级弹幕
   final _specialDanmakuItems = <DanmakuItem<T>>[];
 
+  /// 遮挡区，画布坐标系；见 DanmakuController.setMask
+  final _mask = ValueNotifier<Path?>(null);
+
+  void _setMask(Path? mask) {
+    if (!mounted) return;
+    _mask.value = mask;
+  }
+
   bool get _isEmpty =>
       _scrollDanmakuItems.every((list) => list.isEmpty) &&
       _staticDanmakuItems.value.nonNulls.isEmpty &&
@@ -86,6 +94,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
 
     widget.createdController(DanmakuController<T>(
       addDanmaku: _addDanmaku,
+      setMask: _setMask,
       updateOption: _updateOption,
       pause: _pause,
       resume: _resume,
@@ -153,6 +162,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
     _clearDanmakus();
     _notifier.dispose();
     _staticDanmakuItems.dispose();
+    _mask.dispose();
     super.dispose();
   }
 
@@ -518,84 +528,95 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Stack(
-        children: [
-          RepaintBoundary.wrap(
-            ValueListenableBuilder(
-              valueListenable: _notifier,
-              builder: (context, value, child) {
-                return CustomPaint(
-                  willChange: _running,
-                  painter: ScrollDanmakuPainter(
-                    length: _scrollDanmakuItems.fold<int>(
-                        0, (p, n) => p + n.length),
-                    trackHeight: _danmakuHeight,
-                    danmakuItems: _scrollDanmakuItems,
-                    durationInMilliseconds: _scrollVelocityOrDuration,
-                    fontSize: _option.fontSize,
-                    fontWeight: _option.fontWeight,
-                    strokeWidth: _option.strokeWidth,
-                    fontFamily: _option.fontFamily,
-                    running: _running,
-                    tick: value,
-                  ),
-                  size: widget.size,
-                );
-              },
+      child: ValueListenableBuilder<Path?>(
+        valueListenable: _mask,
+        child: Stack(
+          children: [
+            RepaintBoundary.wrap(
+              ValueListenableBuilder(
+                valueListenable: _notifier,
+                builder: (context, value, child) {
+                  return CustomPaint(
+                    willChange: _running,
+                    painter: ScrollDanmakuPainter(
+                      length: _scrollDanmakuItems.fold<int>(
+                          0, (p, n) => p + n.length),
+                      trackHeight: _danmakuHeight,
+                      danmakuItems: _scrollDanmakuItems,
+                      durationInMilliseconds: _scrollVelocityOrDuration,
+                      fontSize: _option.fontSize,
+                      fontWeight: _option.fontWeight,
+                      strokeWidth: _option.strokeWidth,
+                      fontFamily: _option.fontFamily,
+                      running: _running,
+                      tick: value,
+                    ),
+                    size: widget.size,
+                  );
+                },
+              ),
+              0,
             ),
-            0,
-          ),
-          RepaintBoundary.wrap(
-            ValueListenableBuilder(
-              valueListenable: _staticDanmakuItems,
-              builder: (context, value, child) {
-                return CustomPaint(
-                  painter: StaticDanmakuPainter(
-                    count: value.nonNulls.length,
-                    trackHeight: _danmakuHeight,
-                    danmakuItems: value,
-                    staticDurationInMilliseconds:
-                        _option.staticDurationInMilliseconds,
-                    fontSize: _option.fontSize,
-                    fontWeight: _option.fontWeight,
-                    strokeWidth: _option.strokeWidth,
-                    fontFamily: _option.fontFamily,
-                    tick: _notifier.value,
-                  ),
-                  size: widget.size,
-                );
-              },
+            RepaintBoundary.wrap(
+              ValueListenableBuilder(
+                valueListenable: _staticDanmakuItems,
+                builder: (context, value, child) {
+                  return CustomPaint(
+                    painter: StaticDanmakuPainter(
+                      count: value.nonNulls.length,
+                      trackHeight: _danmakuHeight,
+                      danmakuItems: value,
+                      staticDurationInMilliseconds:
+                          _option.staticDurationInMilliseconds,
+                      fontSize: _option.fontSize,
+                      fontWeight: _option.fontWeight,
+                      strokeWidth: _option.strokeWidth,
+                      fontFamily: _option.fontFamily,
+                      tick: _notifier.value,
+                    ),
+                    size: widget.size,
+                  );
+                },
+              ),
+              1,
             ),
-            1,
-          ),
-          RepaintBoundary.wrap(
-            ValueListenableBuilder(
-              valueListenable: _notifier, // 与滚动弹幕共用控制器
-              builder: (context, value, child) {
-                return CustomPaint(
-                  willChange: _running,
-                  painter: SpecialDanmakuPainter(
-                    length: _specialDanmakuItems.length,
-                    danmakuItems: _specialDanmakuItems,
-                    fontSize: _option.fontSize,
-                    fontWeight: _option.fontWeight,
-                    strokeWidth: _option.strokeWidth,
-                    fontFamily: _option.fontFamily,
-                    running: _running,
-                    tick: value,
-                  ),
-                  size: widget.size,
-                );
-              },
+            RepaintBoundary.wrap(
+              ValueListenableBuilder(
+                valueListenable: _notifier, // 与滚动弹幕共用控制器
+                builder: (context, value, child) {
+                  return CustomPaint(
+                    willChange: _running,
+                    painter: SpecialDanmakuPainter(
+                      length: _specialDanmakuItems.length,
+                      danmakuItems: _specialDanmakuItems,
+                      fontSize: _option.fontSize,
+                      fontWeight: _option.fontWeight,
+                      strokeWidth: _option.strokeWidth,
+                      fontFamily: _option.fontFamily,
+                      running: _running,
+                      tick: value,
+                    ),
+                    size: widget.size,
+                  );
+                },
+              ),
+              2,
             ),
-            2,
-          ),
-        ],
+          ],
+        ),
+        // ClipPath 常驻树中，靠 clipBehavior 在 none / antiAlias 间切换，
+        // 避免遮挡区在 null ↔ 非 null 间切时重建三层弹幕子树
+        builder: (context, mask, child) => ClipPath(
+          clipper: mask == null ? null : _MaskClipper(mask, widget.size),
+          clipBehavior: mask == null ? Clip.none : Clip.antiAlias,
+          child: child,
+        ),
       ),
     );
   }
 
   Iterable<(double, DanmakuItem<T>)> findDanmaku(Offset position) sync* {
+    if (_mask.value?.contains(position) ?? false) return;
     final index = position.dy ~/ _danmakuHeight;
 
     if (index >= _trackCount) {
@@ -620,6 +641,7 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
   }
 
   (double, DanmakuItem<T>)? findSingleDanmaku(Offset position) {
+    if (_mask.value?.contains(position) ?? false) return null;
     final index = position.dy ~/ _danmakuHeight;
 
     if (index >= _trackCount) {
@@ -709,4 +731,32 @@ extension<T> on List<List<T>> {
       this.length = length;
     }
   }
+}
+
+final class _MaskClipper extends CustomClipper<Path> {
+  const _MaskClipper(this.mask, this.canvasSize);
+
+  final Path mask;
+  final Size canvasSize;
+
+  @override
+  Path getClip(Size size) {
+    // 宇宙取 ClipPath 盒子与宿主声明的画布尺寸的并集：
+    // 宿主可能把画布声明得比盒子略大（PiliNara 弹幕层盒子高 = 画布高 − 4）
+    final universe = Rect.fromLTRB(
+      0,
+      0,
+      max(size.width, canvasSize.width),
+      max(size.height, canvasSize.height),
+    );
+    return Path.combine(
+      PathOperation.difference,
+      Path()..addRect(universe),
+      mask,
+    );
+  }
+
+  @override
+  bool shouldReclip(_MaskClipper oldClipper) =>
+      !identical(oldClipper.mask, mask) || oldClipper.canvasSize != canvasSize;
 }
