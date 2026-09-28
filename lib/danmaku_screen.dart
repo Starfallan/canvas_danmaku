@@ -615,56 +615,43 @@ class _DanmakuScreenState<T> extends State<DanmakuScreen<T>>
     );
   }
 
+  /// 按绘制顺序由上到下产出命中的弹幕及其所在轨道顶部。
+  ///
+  /// 纵向可点范围取 max(item.height, 轨道高)：普通弹幕保持整格可点；
+  /// 自带字号放大的弹幕会越过本轨向下延伸，因此从点击所在轨道向上回溯。
   Iterable<(double, DanmakuItem<T>)> findDanmaku(Offset position) sync* {
-    if (_mask.value?.contains(position) ?? false) return;
-    final index = position.dy ~/ _danmakuHeight;
-
-    if (index >= _trackCount) {
+    if (_trackCount == 0 || (_mask.value?.contains(position) ?? false)) {
       return;
     }
 
-    late final trackHeight = index * _danmakuHeight;
-
     final dx = position.dx;
-    final item = _staticDanmakuItems[index];
-    if (item != null &&
+    final dy = position.dy;
+    final start = min(dy ~/ _danmakuHeight, _trackCount - 1);
+
+    bool hit(int track, DanmakuItem<T> item) =>
         item.xPosition <= dx &&
-        dx <= item.xPosition + item.width) {
-      yield (trackHeight, item);
+        dx <= item.xPosition + item.width &&
+        dy - track * _danmakuHeight < max(item.height, _danmakuHeight);
+
+    // 静态层叠在滚动层之上；同层内轨道号大的后绘制，优先命中
+    for (var j = start; j >= 0; j--) {
+      final item = _staticDanmakuItems[j];
+      if (item != null && hit(j, item)) {
+        yield (j * _danmakuHeight, item);
+      }
     }
 
-    for (var i in _scrollDanmakuItems[index].reversed) {
-      if (i.xPosition <= dx && dx <= i.xPosition + i.width) {
-        yield (trackHeight, i);
+    for (var j = start; j >= 0; j--) {
+      for (var i in _scrollDanmakuItems[j].reversed) {
+        if (hit(j, i)) {
+          yield (j * _danmakuHeight, i);
+        }
       }
     }
   }
 
-  (double, DanmakuItem<T>)? findSingleDanmaku(Offset position) {
-    if (_mask.value?.contains(position) ?? false) return null;
-    final index = position.dy ~/ _danmakuHeight;
-
-    if (index >= _trackCount) {
-      return null;
-    }
-
-    late final trackHeight = index * _danmakuHeight;
-
-    final dx = position.dx;
-    final item = _staticDanmakuItems[index];
-    if (item != null &&
-        item.xPosition <= dx &&
-        dx <= item.xPosition + item.width) {
-      return (trackHeight, item);
-    }
-
-    for (var i in _scrollDanmakuItems[index].reversed) {
-      if (i.xPosition <= dx && dx <= i.xPosition + i.width) {
-        return (trackHeight, i);
-      }
-    }
-    return null;
-  }
+  (double, DanmakuItem<T>)? findSingleDanmaku(Offset position) =>
+      findDanmaku(position).firstOrNull;
 }
 
 typedef ListValueNotifier<T extends Object> = ValueNotifier<List<T?>>;
